@@ -1,0 +1,110 @@
+# Supongamos que tienes tus datos en dos vectores, x y y
+x <- c(6,4,8,5,3.5,7,5,10,5,4)
+y <- c(6.5,4.5,7,5,4,8,7,10,6,5)
+
+# Calcula las columnas solicitadas
+z <- predict(lm(y ~ x))  # Valor predicho por el modelo de regresión
+ymedia <- mean(y)        # Media de y
+
+# Crea un dataframe con las columnas calculadas
+df <- data.frame(
+  y = y,
+  x = x,
+  y_cuadrado = y^2,
+  x_cuadrado = x^2,
+  x_por_y = x * y,
+  y_sombrero = z,
+  y_sombrero_menos_y_cuadrado = (z - y)^2,
+  y_sombrero_menos_ymedia_cuadrado = (z - ymedia)^2
+)
+
+# Muestra el dataframe resultante
+print(df)
+
+
+# Calcula los sumatorios de todas las columnas excepto "y_sombrero"
+sums <- colSums(df[, -which(names(df) == "y_sombrero")])
+
+# Crea una fila con los sumatorios
+sum_row <- c(sum(df$y), sum(df$x), sum(df$y_cuadrado), sum(df$x_cuadrado), 
+             sum(df$x_por_y), NA, sum(df$y_sombrero_menos_y_cuadrado ), 
+             sum(df$y_sombrero_menos_ymedia_cuadrado))
+
+# Agrega la fila de sumatorios al dataframe
+df_2 <- rbind(df, sum_row)
+
+# Asigna nombres a las filas
+rownames(df_2)[nrow(df_2)] <- "Sumatorio"
+
+# Muestra el dataframe resultante
+print(df_2)
+
+
+# Calcula la media de la variable independiente x
+x_media <- mean(df$x)
+cat("Media de x:", x_media)
+
+# Calcula la media de la variable dependiente y
+y_media <- mean(df$y)
+cat("Media de y:", y_media)
+
+# Calcula Sxy (covarianza muestral entre x e y)
+Sxy <- cov(df$x, df$y)
+cat("Sxy (Covarianza entre x e y):", Sxy)
+
+# Calcula S^2x (varianza de x)
+S2x <- var(df$x)
+cat("S^2x (Varianza de x):", S2x)
+
+# Calcula S^2y (varianza de y)
+S2y <- var(df$y)
+cat("S^2y (Varianza de y):", S2y)
+
+# Calcula a1 (coeficiente de regresión)
+a1 <- Sxy / S2x
+cat("Coeficiente de regresión (a1):", a1)
+
+# Calcula a0 (coeficiente de intercepción)
+a0 <- y_media - a1 * x_media
+cat("Coeficiente de intercepción (a0):", a0)
+
+
+
+concentracion_73 = a0 + a1 * 7.3
+cat("concentracion_73:", concentracion_73)
+
+
+
+# Calculamos la Suma de Cuadrados de la Regresión (SSR), Error (SSE) y Total (SST)
+SSR <- sum((z - ymedia)^2)
+SSE <- sum((y - z)^2)
+SST <- sum((y - ymedia)^2)
+
+# Grados de libertad
+gl_regresion <- 1
+gl_error <- length(y) - 2  # n - número de parámetros estimados
+gl_total <- length(y) - 1
+
+# Medias Cuadradas
+SMR <- SSR / gl_regresion
+SME <- SSE / gl_error
+
+# Estadístico F
+F0 <- SMR / SME
+
+# Creamos la tabla ANOVA
+tabla_anova <- data.frame(
+  `Fuentes de variación` = c("Regresión", "Error", "Total"),
+  `S.S.` = c(SSR, SSE, SST),
+  `g.l.` = c(gl_regresion, gl_error, gl_total),
+  `S.M.` = c(SMR, SME, NA),  # NA para la media cuadrada total, ya que no se aplica
+  `F0` = c(F0, NA, NA)       # NA para los valores de F que no se aplican
+)
+
+# Imprimimos la tabla ANOVA
+print(tabla_anova)
+
+
+# Calculamos R cuadrado
+R2 <- SSR / SST
+cat("R cuadrado (R^2):", R2)
